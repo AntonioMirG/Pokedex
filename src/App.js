@@ -1,25 +1,47 @@
-import logo from './logo.svg';
-import './App.css';
+// App.js
+import React, { useState } from 'react';
+import Pokedex from './componentes/Pokedex';
+import ModoCombate from './componentes/ModoCombate';
+import './componentes/estilos.css';
 
-function App() {
+const App = () => {
+  const [modo, setModo] = useState('pokedex'); // 'pokedex' o 'combate'
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div>
+      <nav style={{ padding: '10px', textAlign: 'center', background: '#333' }}>
+        <button
+          onClick={() => setModo('pokedex')}
+          style={{
+            margin: '0 10px',
+            padding: '10px 20px',
+            background: modo === 'pokedex' ? '#ffcc00' : '#444',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
         >
-          Learn React
-        </a>
-      </header>
+          Pokédex
+        </button>
+        <button
+          onClick={() => setModo('combate')}
+          style={{
+            margin: '0 10px',
+            padding: '10px 20px',
+            background: modo === 'combate' ? '#ffcc00' : '#444',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          Modo Combate
+        </button>
+      </nav>
+      {modo === 'pokedex' ? <Pokedex /> : <ModoCombate />}
     </div>
   );
-}
+};
 
 export default App;
