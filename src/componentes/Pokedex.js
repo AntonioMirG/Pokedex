@@ -10,7 +10,7 @@ const Pokedex = () => {
   const [pokemones, setPokemones] = useState([]);
 
   useEffect(() => {
-    // Cargar los primeros 100 Pokémon al iniciar
+    // Cargar los primeros 493 Pokémons, primero y segunda generación al iniciar
     const fetchPokemones = async () => {
       try {
         const requests = [];
@@ -32,7 +32,6 @@ const Pokedex = () => {
     setConsulta(searchTerm);
 
     if (searchTerm.trim() === '') {
-      // Si no hay búsqueda, recargar los 100 Pokémon
       const requests = [];
       for (let i = 1; i <= 100; i++) {
         requests.push(axios.get(`${API_URL}${i}`));

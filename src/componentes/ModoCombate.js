@@ -5,7 +5,6 @@ import './estilos.css';
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon/';
 
-// Tabla de multiplicadores de tipos (en español)
 const multiplicadorTipos = {
   normal: { roca: 0.5, fantasma: 0, acero: 0.5 },
   lucha: { normal: 2, roca: 2, acero: 2, hielo: 2, siniestro: 2, volador: 0.5, veneno: 0.5, psíquico: 0.5, bicho: 0.5, hada: 0.5, fantasma: 0 },
@@ -27,7 +26,6 @@ const multiplicadorTipos = {
   hada: { lucha: 2, dragón: 2, siniestro: 2, fuego: 0.5, veneno: 0.5, acero: 0.5 }
 };
 
-// Función para calcular el daño
 function calcularDaño(atacante, defensor) {
   const ataque = atacante.stats.find(s => s.stat.name === 'attack').base_stat;
   const defensa = defensor.stats.find(s => s.stat.name === 'defense')
@@ -46,7 +44,6 @@ function calcularDaño(atacante, defensor) {
   return daño;
 }
 
-// Función que simula el combate entre dos Pokémon
 function simularCombate(pokemon1, pokemon2, setLog) {
   let hp1 = pokemon1.stats.find(s => s.stat.name === 'hp').base_stat;
   let hp2 = pokemon2.stats.find(s => s.stat.name === 'hp').base_stat;
@@ -83,7 +80,7 @@ const ModoCombate = () => {
   const [logCombate, setLogCombate] = useState([]);
   const [busqueda, setBusqueda] = useState('');
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchPokemones = async () => {
       try {
         const requests = [];
