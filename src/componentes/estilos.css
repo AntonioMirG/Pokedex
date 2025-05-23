@@ -1,109 +1,290 @@
-/* styles.css - Estilos para la Pokédex */
+/* src/componentes/estilos.css - Estilos Mejorados */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+/* --- Variables Globales --- */
+:root {
+  --background-color: #1a1a2e;
+  --card-background: #16213e;
+  --primary-text: #e0e0e0;
+  --secondary-text: #a0a0a0;
+  --accent-color: #e94560;
+  --pokemon-yellow: #ffcc00;
+  --pokemon-blue: #3b4cca;
+  --border-radius: 10px;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --transition-speed: 0.3s ease;
+}
+
+/* --- Estilos Base --- */
 body {
-    background-color: #1e1e1e;
-    min-height: 100vh;
-    color: #ffffff;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center; /* Centra el contenido horizontalmente */
-    align-items: flex-start; /* Alinea el contenido desde la parte superior */
-    margin: 0;
-    padding: 0;
+  background-color: var(--background-color);
+  color: var(--primary-text);
+  font-family: 'Roboto', 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
 
-h1 {
-    text-align: center;
-    color: #ffcc00;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 }
 
+h1, h2, h3 {
+  color: var(--pokemon-yellow);
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Navegación (App.js) --- */
+.app-nav {
+  padding: 15px;
+  text-align: center;
+  background: var(--card-background);
+  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  box-shadow: var(--box-shadow);
+  width: 90%;
+  max-width: 1200px;
+}
+
+.nav-button {
+  margin: 0 15px;
+  padding: 12px 25px;
+  background: var(--pokemon-blue);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button:hover {
+  background: #5a6bdf;
+  transform: translateY(-2px);
+}
+
+.nav-button.active {
+  background: var(--pokemon-yellow);
+  color: #333;
+}
+
+/* --- Contenedor Principal --- */
 .container {
-    width: 80%;
-    max-width: 900px;
-     padding: 20px;
-    border-radius: 10px;
-     display: flex;
-    flex-direction: column;
-    align-items: center;
+  width: 90%;
+  max-width: 1200px;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  background-color: rgba(22, 33, 62, 0.5); /* Fondo semitransparente */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-form {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    margin-top: 20px; /* Añade espacio entre el formulario y la parte superior */
+/* --- Formulario de Búsqueda --- */
+.search-form {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 500px;
 }
 
-input {
-    padding: 10px;
-    border-radius: 5px;
-    border: none;
-    background: #444;
-    color: white;
+.search-input {
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 1px solid var(--pokemon-blue);
+  background: #2a2a4a;
+  color: var(--primary-text);
+  font-size: 16px;
+  flex-grow: 1;
+  transition: box-shadow var(--transition-speed);
 }
 
-button {
-    padding: 15px 15px 15px 1;
-    background: #ffcc00;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
+.search-input:focus {
+  outline: none;
+  box-shadow: 0 0 8px var(--pokemon-blue);
 }
 
-button:hover {
-    background: #e6b800;
+/* --- Grid de Pokémon --- */
+.pokemon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 25px;
+  width: 100%;
+  margin-top: 20px;
 }
 
-.pokemon-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    gap: 20px;
-    padding: 20px;
-    max-width: 1000px;
-}
-
+/* --- Tarjeta Pokémon --- */
 .pokemon-card {
-    background: #333;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    width: 180px;
-    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+  background: var(--card-background);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  border: 1px solid transparent;
+  transition: transform var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+  cursor: pointer;
+}
+
+.pokemon-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--pokemon-yellow);
+  box-shadow: 0 8px 16px rgba(233, 69, 96, 0.3);
 }
 
 .pokemon-card img {
-    width: 120px;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  image-rendering: pixelated; /* Para sprites */
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.4));
 }
 
 .pokemon-card h2 {
-    color: #ffcc00;
-    font-size: 18px;
+  color: var(--pokemon-yellow);
+  font-size: 1.1em;
+  margin: 10px 0;
+  text-transform: capitalize;
 }
 
 .pokemon-card p {
-    font-size: 14px;
+  font-size: 0.9em;
+  color: var(--secondary-text);
+  margin: 5px 0;
 }
 
-.pokemon-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 4 columnas */
-    gap: 10px; /* Menor espacio entre los Pokémon */
-    margin-top: 20px;
-    padding-bottom: 20px; /* Asegura que no se corte en la parte inferior */
+.pokemon-card p strong {
+  color: var(--primary-text);
 }
 
-.pokemon-card {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
+/* --- Modo Combate Específico --- */
+.combat-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.combat-controls {
+  text-align: center;
+  margin-bottom: 30px;
+  background: var(--card-background);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.combat-button {
+  padding: 15px 30px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  transition: background var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.combat-button:hover:not(:disabled) {
+  background: #ff6384;
+  transform: scale(1.05);
+}
+
+.combat-button:disabled {
+  background: #555;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.combat-selection {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    min-height: 150px; /* Asegura espacio para los Pokémon seleccionados */
+}
+
+.selected-pokemon {
+    background: #2a2a4a;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    border: 2px dashed var(--pokemon-blue);
+    width: 150px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.pokemon-card img {
-    width: 100px; /* Ajusta el tamaño de la imagen */
-    height: 100px;
-    object-fit: contain;
+.selected-pokemon img {
+    width: 80px;
+    height: 80px;
+}
+
+.selected-pokemon h3 {
+    margin-top: 10px;
+    font-size: 1em;
+    color: var(--primary-text);
+}
+
+
+.combat-results {
+  background: var(--card-background);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  width: 80%;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: var(--box-shadow);
+}
+
+.combat-results h2 {
+  color: var(--accent-color);
+  margin-bottom: 15px;
+}
+
+.combat-log {
+  background: #2a2a4a;
+  padding: 15px;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+  border: 1px solid #444;
+}
+
+.combat-log ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.combat-log li {
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+  color: var(--secondary-text);
+}
+.combat-log li:last-child {
+  border-bottom: none;
+}
+
+/* Estilo para Pokémon seleccionado en Modo Combate */
+.pokemon-card.selected {
+  border-color: var(--accent-color);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--accent-color);
+}
+
+/* Mensaje de carga o no encontrado */
+.message {
+  font-size: 1.2em;
+  color: var(--secondary-text);
+  margin-top: 50px;
 }

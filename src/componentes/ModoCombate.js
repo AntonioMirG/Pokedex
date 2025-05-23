@@ -4,7 +4,9 @@ import axios from 'axios';
 import './estilos.css';
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon/';
+const TOTAL_POKEMON = 493;
 
+// (El objeto multiplicadorTipos permanece igual)
 const multiplicadorTipos = {
   normal: { roca: 0.5, fantasma: 0, acero: 0.5 },
   lucha: { normal: 2, roca: 2, acero: 2, hielo: 2, siniestro: 2, volador: 0.5, veneno: 0.5, psíquico: 0.5, bicho: 0.5, hada: 0.5, fantasma: 0 },
@@ -28,21 +30,27 @@ const multiplicadorTipos = {
 
 function calcularDaño(atacante, defensor) {
   const ataque = atacante.stats.find(s => s.stat.name === 'attack').base_stat;
-  const defensa = defensor.stats.find(s => s.stat.name === 'defense')
-    ? defensor.stats.find(s => s.stat.name === 'defense').base_stat
-    : 50;
+  const defensa = defensor.stats.find(s => s.stat.name === 'defense')?.base_stat || 50; // Usa optional chaining y valor por defecto
   const tipoAtacante = atacante.types[0].type.name;
   const tipoDefensor = defensor.types[0].type.name;
   let multiplicador = 1;
-  if (
-    multiplicadorTipos[tipoAtacante] &&
-    multiplicadorTipos[tipoAtacante][tipoDefensor] !== undefined
-  ) {
+
+  if (multiplicadorTipos[tipoAtacante]?.[tipoDefensor] !== undefined) {
     multiplicador = multiplicadorTipos[tipoAtacante][tipoDefensor];
   }
-  const daño = Math.max((ataque * multiplicador) - defensa, 1);
+
+  // Fórmula simplificada: 50 * (Ataque / Defensa) * Multiplicador * Random(0.85, 1)
+  const poderBase = 50; // Poder base arbitrario para el ataque
+  const randomFactor = Math.random() * (1 - 0.85) + 0.85;
+  let daño = Math.floor(
+      (((2 * 50 / 5 + 2) * poderBase * (ataque / defensa)) / 50 + 2) * multiplicador * randomFactor
+  );
+  daño = Math.max(daño, 1); // Asegura al menos 1 de daño
+
+  console.log(`${atacante.name} (Atk: ${ataque}, Type: ${tipoAtacante}) vs ${defensor.name} (Def: ${defensa}, Type: ${tipoDefensor}) | Multi: ${multiplicador} | Damage: ${daño}`);
   return daño;
 }
+
 
 function simularCombate(pokemon1, pokemon2, setLog) {
   let hp1 = pokemon1.stats.find(s => s.stat.name === 'hp').base_stat;
@@ -51,25 +59,30 @@ function simularCombate(pokemon1, pokemon2, setLog) {
   const velocidad1 = pokemon1.stats.find(s => s.stat.name === 'speed').base_stat;
   const velocidad2 = pokemon2.stats.find(s => s.stat.name === 'speed').base_stat;
 
-  let turno = velocidad1 >= velocidad2 ? 1 : 2;
-  let logCombate = [];
+  let p1 = { ...pokemon1, hp: hp1 };
+  let p2 = { ...pokemon2, hp: hp2 };
 
-  while (hp1 > 0 && hp2 > 0) {
+  let turno = velocidad1 >= velocidad2 ? 1 : 2;
+  let logCombate = [`¡Comienza el combate entre ${p1.name} (HP: ${p1.hp}) y ${p2.name} (HP: ${p2.hp})!`];
+
+  while (p1.hp > 0 && p2.hp > 0) {
     if (turno === 1) {
-      const daño = calcularDaño(pokemon1, pokemon2);
-      hp2 -= daño;
-      logCombate.push(`${pokemon1.name} hace ${daño} de daño a ${pokemon2.name}`);
+      const daño = calcularDaño(p1, p2);
+      p2.hp = Math.max(p2.hp - daño, 0);
+      logCombate.push(`${p1.name} ataca. ${p2.name} recibe ${daño} de daño. (HP: ${p2.hp})`);
       turno = 2;
     } else {
-      const daño = calcularDaño(pokemon2, pokemon1);
-      hp1 -= daño;
-      logCombate.push(`${pokemon2.name} hace ${daño} de daño a ${pokemon1.name}`);
+      const daño = calcularDaño(p2, p1);
+      p1.hp = Math.max(p1.hp - daño, 0);
+      logCombate.push(`${p2.name} ataca. ${p1.name} recibe ${daño} de daño. (HP: ${p1.hp})`);
       turno = 1;
     }
   }
 
+  const ganador = p1.hp > 0 ? p1 : p2;
+  logCombate.push(`¡${ganador.name} ha ganado el combate!`);
   setLog(logCombate);
-  return hp1 > 0 ? pokemon1 : pokemon2;
+  return ganador;
 }
 
 const ModoCombate = () => {
@@ -79,120 +92,155 @@ const ModoCombate = () => {
   const [ganador, setGanador] = useState(null);
   const [logCombate, setLogCombate] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPokemones = async () => {
+        setLoading(true);
       try {
         const requests = [];
-        for (let i = 1; i <= 493; i++) {
+        for (let i = 1; i <= TOTAL_POKEMON; i++) {
           requests.push(axios.get(`${API_URL}${i}`));
         }
         const responses = await Promise.all(requests);
         setPokemones(responses.map(res => res.data));
       } catch (error) {
         console.error('Error al obtener los Pokémon', error);
+      } finally {
+          setLoading(false);
       }
     };
     fetchPokemones();
   }, []);
 
-  // Filtrar Pokémon basado en la búsqueda
-  const pokemonesFiltrados = pokemones.filter(pokemon => {
-    const nombreCoincide = pokemon.name.toLowerCase().includes(busqueda.toLowerCase());
-    const idCoincide = pokemon.id.toString().includes(busqueda);
-    return nombreCoincide || idCoincide;
-  });
+  const pokemonesFiltrados = pokemones.filter(pokemon =>
+    pokemon.name.toLowerCase().includes(busqueda.toLowerCase()) ||
+    pokemon.id.toString().includes(busqueda)
+  );
+
+  const handleSelect = (pokemon) => {
+    if (ganador) resetCombate(); // Reinicia si ya hubo un ganador
+
+    if (seleccion1?.id === pokemon.id) {
+        setSeleccion1(null);
+    } else if (seleccion2?.id === pokemon.id) {
+        setSeleccion2(null);
+    } else if (!seleccion1) {
+        setSeleccion1(pokemon);
+    } else if (!seleccion2) {
+        setSeleccion2(pokemon);
+    }
+  };
 
   const iniciarCombate = () => {
     if (seleccion1 && seleccion2) {
+      setLogCombate([]); // Limpia el log anterior
       const ganadorCombate = simularCombate(seleccion1, seleccion2, setLogCombate);
       setGanador(ganadorCombate);
     }
   };
 
+  const resetCombate = () => {
+      setSeleccion1(null);
+      setSeleccion2(null);
+      setGanador(null);
+      setLogCombate([]);
+  }
+
   return (
-    <div className="container">
+    <div className="container combat-container">
       <h1>Modo Combate</h1>
 
-      {/* Campo de búsqueda */}
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Buscar Pokémon por nombre o ID"
-          value={busqueda}
-          onChange={e => setBusqueda(e.target.value)}
-          style={{
-            padding: '10px',
-            borderRadius: '5px',
-            border: '1px solid #ccc',
-            width: '300px',
-            marginBottom: '20px'
-          }}
-        />
+      <div className="search-form">
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Buscar Pokémon para combatir"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+          />
       </div>
 
-      {/* Mostrar el resultado del combate */}
-      {ganador && (
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h2>¡El ganador es {ganador.name}!</h2>
-        </div>
-      )}
-
-      {/* Mostrar el log del combate */}
-      {logCombate.length > 0 && (
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h3>Log del combate</h3>
-          <ul>
-            {logCombate.map((log, index) => (
-              <li key={index}>{log}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Botón de iniciar combate en la parte superior */}
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <button onClick={iniciarCombate} disabled={!seleccion1 || !seleccion2}>
-          Iniciar combate
-        </button>
-      </div>
-
-      {/* Contenedor de Pokémon */}
-      <div className="pokemon-grid">
-        {pokemonesFiltrados.map(pokemon => (
-          <div
-            key={pokemon.id}
-            style={{
-              cursor: 'pointer',
-              backgroundColor: '#2a2a2a',
-              borderRadius: '10px',
-              padding: '10px',
-              margin: '10px',
-              textAlign: 'center',
-              width: '180px',
-              boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-              transition: 'background-color 0.3s',
-              transform: seleccion1?.id === pokemon.id || seleccion2?.id === pokemon.id ? 'scale(1.1)' : 'scale(1)',
-            }}
-            onClick={() => {
-              if (!seleccion1) {
-                setSeleccion1(pokemon);
-              } else if (!seleccion2) {
-                setSeleccion2(pokemon);
-              }
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#444'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
-          >
-            <img
-              src={pokemon.sprites.front_default}
-              alt={pokemon.name}
-              style={{ width: '100px', height: '100px' }}
-            />
-            <h3>{pokemon.name}</h3>
+      <div className="combat-controls">
+          <div className="combat-selection">
+              <div className="selected-pokemon">
+                  {seleccion1 ? (
+                      <>
+                          <img src={seleccion1.sprites.front_default} alt={seleccion1.name} />
+                          <h3>{seleccion1.name}</h3>
+                      </>
+                  ) : <h3>Jugador 1</h3>}
+              </div>
+               <h2>VS</h2>
+               <div className="selected-pokemon">
+                  {seleccion2 ? (
+                      <>
+                          <img src={seleccion2.sprites.front_default} alt={seleccion2.name} />
+                          <h3>{seleccion2.name}</h3>
+                      </>
+                  ) : <h3>Jugador 2</h3>}
+              </div>
           </div>
-        ))}
+          <button
+            className="combat-button"
+            onClick={iniciarCombate}
+            disabled={!seleccion1 || !seleccion2 || ganador} // Deshabilita si falta selección o ya hay ganador
+          >
+            ¡Iniciar Combate!
+          </button>
+          {ganador && (
+             <button
+                className="combat-button"
+                onClick={resetCombate}
+                style={{ marginLeft: '10px', background: '#555' }}
+             >
+                Nuevo Combate
+             </button>
+          )}
       </div>
+
+      {ganador && (
+        <div className="combat-results">
+          <h2>¡El ganador es {ganador.name.toUpperCase()}!</h2>
+        </div>
+      )}
+
+      {logCombate.length > 0 && (
+        <div className="combat-results">
+          <h3>Log del Combate</h3>
+          <div className="combat-log">
+              <ul>
+                {logCombate.map((log, index) => (
+                  <li key={index}>{log}</li>
+                ))}
+              </ul>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <p className="message">Cargando luchadores...</p>
+      ) : (
+          <div className="pokemon-grid">
+            {pokemonesFiltrados.map(pokemon => {
+                const isSelected = seleccion1?.id === pokemon.id || seleccion2?.id === pokemon.id;
+                return (
+                  <div
+                    key={pokemon.id}
+                    className={`pokemon-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleSelect(pokemon)}
+                  >
+                    <img
+                      src={pokemon.sprites.front_default}
+                      alt={pokemon.name}
+                    />
+                    <h3>{pokemon.name}</h3>
+                    <p>ID: {pokemon.id}</p>
+                  </div>
+                );
+            })}
+          </div>
+      )}
     </div>
   );
 };
